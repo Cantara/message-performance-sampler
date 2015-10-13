@@ -57,13 +57,15 @@ public class LatencyAndThroughputMessageSampler {
 
     public PrintableStatistics getPrintableTimewindowLatencyStatistics() {
         synchronized (timewindowLock) {
-            return new PrintableStatistics("\"Time-window statistics for Latency\nwindow-size: " + timewindowStartNanos, timewindowLatencyStatistics.copy());
+            long durationMillis = Math.round((System.nanoTime() - timewindowStartNanos) / 1000000.0);
+            return new PrintableStatistics("\"Time-window statistics for Latency\nmilliseconds in timewindow: " + durationMillis, timewindowLatencyStatistics.copy());
         }
     }
 
     public PrintableStatistics getPrintableTimewindowThroughputStatistics() {
         synchronized (timewindowLock) {
-            return new PrintableStatistics("\"Time-window statistics for Throughput", timewindowThroughputStatistics.copy());
+            long durationMillis = Math.round((System.nanoTime() - timewindowStartNanos) / 1000000.0);
+            return new PrintableStatistics("\"Time-window statistics for Throughput\nmilliseconds in timewindow: " + durationMillis, timewindowThroughputStatistics.copy());
         }
     }
 
@@ -95,8 +97,10 @@ public class LatencyAndThroughputMessageSampler {
         if (sentTimeNanos < minSentTimeNanos) {
             minSentTimeNanos = sentTimeNanos;
         }
-        double throughput = (receivedTimeNanos - minSentTimeNanos) / (double) throughputStatistics.getN();
-        throughputStatistics.addValue(throughput);
+        double durationNanos = (receivedTimeNanos - minSentTimeNanos);
+        double durationSecond = durationNanos / 1000000.0;
+        double throughputMsgsPerSecond = throughputStatistics.getN() / durationSecond;
+        throughputStatistics.addValue(throughputMsgsPerSecond);
     }
 
     private void addTimewindowLatency(long receivedTimeNanos) {
@@ -109,7 +113,9 @@ public class LatencyAndThroughputMessageSampler {
         if (sentTimeNanos < timewindowMinSentTimeNanos) {
             timewindowMinSentTimeNanos = sentTimeNanos;
         }
-        double timewindowThroughput = (receivedTimeNanos - timewindowMinSentTimeNanos) / (double) timewindowThroughputStatistics.getN();;
-        timewindowThroughputStatistics.addValue(timewindowThroughput);
+        double durationNanos = (receivedTimeNanos - timewindowMinSentTimeNanos);
+        double durationSecond = durationNanos / 1000000.0;
+        double throughputMsgsPerSecond = timewindowThroughputStatistics.getN() / durationSecond;
+        timewindowThroughputStatistics.addValue(throughputMsgsPerSecond);
     }
 }
