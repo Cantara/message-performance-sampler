@@ -75,8 +75,10 @@ public class PerformanceSampler {
                 resetTimeWindow();
             }
         }
-        addLatency(sentTimeNanos, receivedTimeNanos);
-        addThroughput(sentTimeNanos, receivedTimeNanos);
+        synchronized (cumulativeStatisticsLock) {
+            addLatency(sentTimeNanos, receivedTimeNanos);
+            addThroughput(sentTimeNanos, receivedTimeNanos);
+        }
         synchronized (timewindowLock) {
             addTimewindowLatency(receivedTimeNanos);
             addTimewindowThroughput(sentTimeNanos, receivedTimeNanos);
