@@ -1,13 +1,13 @@
-package no.cantara;
+package no.cantara.performance.messagesampler;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class PerformanceSampler {
+public class LatencyAndThroughputMessageSampler {
 
-   private class PerformanceSamplerTimerTask extends TimerTask {
+   private class PerformanceMessageSamplerTimerTask extends TimerTask {
         @Override
         public void run() {
             getPrintableTimewindowLatencyStatistics().printToStandardOutput();
@@ -30,7 +30,7 @@ public class PerformanceSampler {
     protected long timewindowMinSentTimeNanos = Long.MAX_VALUE;
     protected DescriptiveStatistics timewindowThroughputStatistics = new DescriptiveStatistics();
 
-    public PerformanceSampler() {
+    public LatencyAndThroughputMessageSampler() {
     }
 
     private void resetTimeWindow() {
@@ -71,7 +71,7 @@ public class PerformanceSampler {
         synchronized (initializationLock) {
             if (timer == null) {
                 timer = new Timer(true);
-                timer.scheduleAtFixedRate(new PerformanceSamplerTimerTask(), 1000, 1000);
+                timer.scheduleAtFixedRate(new PerformanceMessageSamplerTimerTask(), 1000, 1000);
                 resetTimeWindow();
             }
         }

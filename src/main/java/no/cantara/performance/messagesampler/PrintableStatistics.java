@@ -1,4 +1,4 @@
-package no.cantara;
+package no.cantara.performance.messagesampler;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
