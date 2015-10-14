@@ -10,7 +10,7 @@
 
   <groupId>no.cantara</groupId>
   <artifactId>message-performance-sampler</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0</version>
 
   <packaging>jar</packaging>
 
@@ -18,7 +18,7 @@
     <developerConnection>scm:git:git@github.com:Cantara/message-performance-sampler.git</developerConnection>
     <connection>scm:git:git@github.com:Cantara/message-performance-sampler.git</connection>
     <url>https://github.com/Cantara/message-performance-sampler</url>
-    <tag>HEAD</tag>
+    <tag>message-performance-sampler-1.0</tag>
   </scm>
 
   <repositories>
