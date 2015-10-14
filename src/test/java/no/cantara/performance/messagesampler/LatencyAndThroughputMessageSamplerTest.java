@@ -6,8 +6,8 @@ public class LatencyAndThroughputMessageSamplerTest {
         TimeWindowSampleCallback callback = new TimeWindowSampleCallback() {
             @Override
             public void latencyAndThroughput(PrintableStatistics latency, PrintableStatistics throughput) {
-                latency.printToStandardOutput();
-                throughput.printToStandardOutput();
+                System.out.println(latency.getJson());
+                System.out.println(throughput.getJson());
             }
         };
         LatencyAndThroughputMessageSampler sampler = new LatencyAndThroughputMessageSampler(callback, 2000);
@@ -18,7 +18,7 @@ public class LatencyAndThroughputMessageSamplerTest {
             }
             sampler.addMessage(sentTime, System.currentTimeMillis());
         }
-        sampler.getPrintableLatencyStatistics().printToStandardOutput();
-        sampler.getPrintableThroughputStatistics().printToStandardOutput();
+        System.out.println(sampler.getPrintableLatencyStatistics().getJson());
+        System.out.println(sampler.getPrintableThroughputStatistics().getJson());
     }
 }

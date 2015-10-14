@@ -57,27 +57,27 @@ public class LatencyAndThroughputMessageSampler {
 
     public PrintableStatistics getPrintableLatencyStatistics() {
         synchronized (cumulativeStatisticsLock) {
-            return new PrintableStatistics("\"Cumulative statistics for Latency", latencyStatistics.copy());
+            return new PrintableStatistics("latency", "cumulative", "milliseconds", latencyStatistics.copy());
         }
     }
 
     public PrintableStatistics getPrintableThroughputStatistics() {
         synchronized (cumulativeStatisticsLock) {
-            return new PrintableStatistics("\"Cumulative statistics for Throughput", throughputStatistics.copy());
+            return new PrintableStatistics("throughput", "Cumulative", "messages/second", throughputStatistics.copy());
         }
     }
 
     public PrintableStatistics getPrintableTimewindowLatencyStatistics() {
         synchronized (timewindowLock) {
             long durationMillis = System.currentTimeMillis() - timewindowStartMillis;
-            return new PrintableStatistics("\"Time-window statistics for Latency\nmilliseconds in timewindow: " + durationMillis, timewindowLatencyStatistics.copy());
+            return new PrintableStatistics("latency", "time-window (" + durationMillis + ")", "milliseconds", timewindowLatencyStatistics.copy());
         }
     }
 
     public PrintableStatistics getPrintableTimewindowThroughputStatistics() {
         synchronized (timewindowLock) {
             long durationMillis = System.currentTimeMillis() - timewindowStartMillis;
-            return new PrintableStatistics("\"Time-window statistics for Throughput\nmilliseconds in timewindow: " + durationMillis, timewindowThroughputStatistics.copy());
+            return new PrintableStatistics("throughput", "time-window (" + durationMillis + ")", "messages/second", timewindowThroughputStatistics.copy());
         }
     }
 
