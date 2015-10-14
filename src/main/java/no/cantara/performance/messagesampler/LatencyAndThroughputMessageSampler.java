@@ -81,7 +81,6 @@ public class LatencyAndThroughputMessageSampler {
                 timer = new Timer(true);
                 timer.scheduleAtFixedRate(new PerformanceMessageSamplerTimerTask(), 1000, 1000);
                 resetTimeWindow();
-                minSentTimeMillis = System.currentTimeMillis();
             }
         }
         synchronized (cumulativeStatisticsLock) {
