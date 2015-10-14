@@ -5,11 +5,11 @@ public class LatencyAndThroughputMessageSamplerTest {
         final Object waitBus = new Object();
         LatencyAndThroughputMessageSampler sampler = new LatencyAndThroughputMessageSampler();
         for (int i=0; i<500; i++) {
-            long sentTime = System.nanoTime();
+            long sentTime = System.currentTimeMillis();
             synchronized (waitBus) {
                 waitBus.wait(10, 0);
             }
-            sampler.addMessage(sentTime, System.nanoTime());
+            sampler.addMessage(sentTime, System.currentTimeMillis());
         }
         sampler.getPrintableLatencyStatistics().printToStandardOutput();
         sampler.getPrintableThroughputStatistics().printToStandardOutput();
