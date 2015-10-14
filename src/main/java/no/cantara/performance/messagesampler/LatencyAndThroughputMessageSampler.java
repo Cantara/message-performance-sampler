@@ -10,11 +10,15 @@ public class LatencyAndThroughputMessageSampler {
    private class PerformanceMessageSamplerTimerTask extends TimerTask {
         @Override
         public void run() {
-            getPrintableTimewindowLatencyStatistics().printToStandardOutput();
-            getPrintableTimewindowThroughputStatistics().printToStandardOutput();
+            PrintableStatistics latency = getPrintableTimewindowLatencyStatistics();
+            PrintableStatistics throughput = getPrintableTimewindowThroughputStatistics();
             resetTimeWindow();
+            callback.latencyAndThroughput(latency, throughput);
         }
     }
+
+    protected final TimeWindowSampleCallback callback;
+    protected final int timeWindowSampleInterval;
 
     protected final Object initializationLock = new Object();
     protected Timer timer;
@@ -30,7 +34,9 @@ public class LatencyAndThroughputMessageSampler {
     protected long timewindowMinSentTimeMillis = Long.MAX_VALUE;
     protected DescriptiveStatistics timewindowThroughputStatistics = new DescriptiveStatistics();
 
-    public LatencyAndThroughputMessageSampler() {
+    public LatencyAndThroughputMessageSampler(TimeWindowSampleCallback callback, int timeWindowSampleInterval) {
+        this.callback = callback;
+        this.timeWindowSampleInterval = timeWindowSampleInterval;
     }
 
     public void stopTimerBasedSampler() {
@@ -79,7 +85,7 @@ public class LatencyAndThroughputMessageSampler {
         synchronized (initializationLock) {
             if (timer == null) {
                 timer = new Timer(true);
-                timer.scheduleAtFixedRate(new PerformanceMessageSamplerTimerTask(), 1000, 1000);
+                timer.scheduleAtFixedRate(new PerformanceMessageSamplerTimerTask(), timeWindowSampleInterval, timeWindowSampleInterval);
                 resetTimeWindow();
             }
         }
@@ -103,7 +109,7 @@ public class LatencyAndThroughputMessageSampler {
             minSentTimeMillis = sentTimeMillis;
         }
         double durationMillis = (receivedTimeMillis - minSentTimeMillis);
-        double durationSecond = durationMillis / 1000.0;
+        double durationSecond = durationMillis / timeWindowSampleInterval;
         double throughputMsgsPerSecond = (throughputStatistics.getN() + 1) / durationSecond;
         throughputStatistics.addValue(throughputMsgsPerSecond);
     }
@@ -118,7 +124,7 @@ public class LatencyAndThroughputMessageSampler {
             timewindowMinSentTimeMillis = sentTimeMillis;
         }
         double durationMillis = (receivedTimeMillis - timewindowMinSentTimeMillis);
-        double durationSecond = durationMillis / 1000.0;
+        double durationSecond = durationMillis / timeWindowSampleInterval;
         double throughputMsgsPerSecond = (timewindowThroughputStatistics.getN() + 1) / durationSecond;
         timewindowThroughputStatistics.addValue(throughputMsgsPerSecond);
     }
