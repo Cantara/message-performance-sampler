@@ -33,6 +33,13 @@ public class LatencyAndThroughputMessageSampler {
     public LatencyAndThroughputMessageSampler() {
     }
 
+    public void stopTimerBasedSampler() {
+        synchronized (initializationLock) {
+            timer.cancel();
+            timer = null;
+        }
+    }
+
     private void resetTimeWindow() {
         synchronized (timewindowLock) {
             timewindowMinSentTimeMillis = Long.MAX_VALUE;
