@@ -7,19 +7,25 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.StringWriter;
+import java.time.ZonedDateTime;
 
 public class PrintableStatistics {
     private final String name;
     private final String type;
     private final String unit;
     private final DescriptiveStatistics statistics;
+    private final ZonedDateTime sampleBegin;
+    private final ZonedDateTime sampleEnd;
+
     private final ThreadLocal<JsonGenerator> jsonGeneratorThreadLocal = new ThreadLocal<>();
 
-    PrintableStatistics(String name, String type, String unit, DescriptiveStatistics statistics) {
+    PrintableStatistics(String name, String type, String unit, ZonedDateTime sampleStart, ZonedDateTime sampleEnd, DescriptiveStatistics statistics) {
         this.name = name;
         this.type = type;
         this.unit = unit;
         this.statistics = statistics;
+        this.sampleBegin = sampleStart;
+        this.sampleEnd = sampleEnd;
     }
 
     public void printToStandardOutput() {
@@ -33,6 +39,9 @@ public class PrintableStatistics {
     public void printTo(PrintStream out) {
         out.println(name);
         out.println(type);
+        out.println(unit);
+        out.println(sampleBegin.toString());
+        out.println(sampleEnd.toString());
         out.printf("N      = %8d\n", statistics.getN());
         out.printf("avg    = %12.3f\n", statistics.getMean());
         out.printf("stddev = %12.3f\n", statistics.getStandardDeviation());
@@ -58,6 +67,8 @@ public class PrintableStatistics {
             jg.writeStringField("name", name);
             jg.writeStringField("type", type);
             jg.writeStringField("unit", unit);
+            jg.writeStringField("sample-bgn", sampleBegin.toString());
+            jg.writeStringField("sample-end", sampleEnd.toString());
             jg.writeObjectFieldStart("statistics");
             jg.writeNumberField("N", statistics.getN());
             if (statistics.getN() > 0) {
