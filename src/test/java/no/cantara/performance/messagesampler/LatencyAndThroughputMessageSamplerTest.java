@@ -10,8 +10,8 @@ public class LatencyAndThroughputMessageSamplerTest {
                 System.out.println(throughput.getJson());
             }
         };
-        LatencyAndThroughputMessageSampler sampler = new LatencyAndThroughputMessageSampler(callback, 2000);
-        for (int i=0; i<500; i++) {
+        LatencyAndThroughputMessageSampler sampler = new LatencyAndThroughputMessageSampler(callback, 100);
+        for (int i=0; i<40; i++) {
             long sentTime = System.currentTimeMillis();
             synchronized (waitBus) {
                 waitBus.wait(10, 0);

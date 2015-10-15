@@ -32,9 +32,9 @@ public class LatencyAndThroughputMessageSampler {
 
     protected final Object cumulativeStatisticsLock = new Object();
     protected ZonedDateTime cumulativeStart;
-    protected final DescriptiveStatistics latencyStatistics = new DescriptiveStatistics();
+    protected DescriptiveStatistics latencyStatistics = new DescriptiveStatistics();
     protected long minSentTimeMillis = Long.MAX_VALUE;
-    protected final DescriptiveStatistics throughputStatistics = new DescriptiveStatistics();
+    protected DescriptiveStatistics throughputStatistics = new DescriptiveStatistics();
 
     protected final Object timewindowLock = new Object();
     protected ZonedDateTime timewindowStart;
@@ -89,16 +89,19 @@ public class LatencyAndThroughputMessageSampler {
     public void addMessage(long sentTimeMillis, long receivedTimeMillis) {
         synchronized (initializationLock) {
             if (timer == null) {
-                timer = new Timer(true);
-                timer.scheduleAtFixedRate(new PerformanceMessageSamplerTimerTask(), timeWindowSampleIntervalMs, timeWindowSampleIntervalMs);
                 ZonedDateTime now = ZonedDateTime.now();
                 synchronized (cumulativeStatisticsLock) {
                     cumulativeStart = now;
+                    minSentTimeMillis = Long.MAX_VALUE;
+                    latencyStatistics = new DescriptiveStatistics();
+                    throughputStatistics = new DescriptiveStatistics();
                 }
                 synchronized (timewindowLock) {
                     timewindowEnd = now;
                     resetTimeWindow();
                 }
+                timer = new Timer(true);
+                timer.scheduleAtFixedRate(new PerformanceMessageSamplerTimerTask(), timeWindowSampleIntervalMs, timeWindowSampleIntervalMs);
             }
         }
         synchronized (cumulativeStatisticsLock) {

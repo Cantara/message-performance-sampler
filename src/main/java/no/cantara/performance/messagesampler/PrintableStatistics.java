@@ -19,12 +19,18 @@ public class PrintableStatistics {
 
     private final ThreadLocal<JsonGenerator> jsonGeneratorThreadLocal = new ThreadLocal<>();
 
-    PrintableStatistics(String name, String type, String unit, ZonedDateTime sampleStart, ZonedDateTime sampleEnd, DescriptiveStatistics statistics) {
+    PrintableStatistics(String name, String type, String unit, ZonedDateTime sampleBegin, ZonedDateTime sampleEnd, DescriptiveStatistics statistics) {
+        if (sampleBegin == null) {
+            throw new IllegalArgumentException("sampleBegin cannot be null");
+        }
+        if (sampleEnd == null) {
+            throw new IllegalArgumentException("sampleEnd cannot be null");
+        }
         this.name = name;
         this.type = type;
         this.unit = unit;
         this.statistics = statistics;
-        this.sampleBegin = sampleStart;
+        this.sampleBegin = sampleBegin;
         this.sampleEnd = sampleEnd;
     }
 
