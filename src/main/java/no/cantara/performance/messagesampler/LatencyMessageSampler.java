@@ -7,20 +7,18 @@ import java.time.ZonedDateTime;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class LatencyAndThroughputMessageSampler {
+public class LatencyMessageSampler {
 
    private class PerformanceMessageSamplerTimerTask extends TimerTask {
         @Override
         public void run() {
             PrintableStatistics latency;
-            PrintableStatistics throughput;
             synchronized (timewindowLock) {
                 timewindowEnd = ZonedDateTime.now(ZoneId.systemDefault());
-                latency = getPrintableTimewindowLatencyStatistics();
-                throughput = getPrintableTimewindowThroughputStatistics();
+                latency = getPrintableTimewindowStatistics();
                 resetTimeWindow();
             }
-            callback.latencyAndThroughput(latency, throughput);
+            callback.timewindowStatistics(latency);
         }
     }
 
@@ -43,7 +41,7 @@ public class LatencyAndThroughputMessageSampler {
     protected long timewindowMinSentTimeMillis = Long.MAX_VALUE;
     protected DescriptiveStatistics timewindowThroughputStatistics = new DescriptiveStatistics();
 
-    public LatencyAndThroughputMessageSampler(TimeWindowSampleCallback callback, int timeWindowSampleIntervalMs) {
+    public LatencyMessageSampler(TimeWindowSampleCallback callback, int timeWindowSampleIntervalMs) {
         this.callback = callback;
         this.timeWindowSampleIntervalMs = timeWindowSampleIntervalMs;
     }
@@ -62,27 +60,15 @@ public class LatencyAndThroughputMessageSampler {
         timewindowThroughputStatistics = new DescriptiveStatistics();
     }
 
-    public PrintableStatistics getPrintableLatencyStatistics() {
+    public PrintableStatistics getPrintableStatistics() {
         synchronized (cumulativeStatisticsLock) {
-            return new PrintableStatistics("latency", "cumulative", "milliseconds", cumulativeStart, ZonedDateTime.now(), latencyStatistics.copy());
+            return new PrintableStatistics("performance", "cumulative", "milliseconds", cumulativeStart, ZonedDateTime.now(), latencyStatistics.copy());
         }
     }
 
-    public PrintableStatistics getPrintableThroughputStatistics() {
-        synchronized (cumulativeStatisticsLock) {
-            return new PrintableStatistics("throughput", "cumulative", "messages/second", cumulativeStart, ZonedDateTime.now(), throughputStatistics.copy());
-        }
-    }
-
-    public PrintableStatistics getPrintableTimewindowLatencyStatistics() {
+    public PrintableStatistics getPrintableTimewindowStatistics() {
         synchronized (timewindowLock) {
-            return new PrintableStatistics("latency", "time-window", "milliseconds", timewindowStart, timewindowEnd, timewindowLatencyStatistics.copy());
-        }
-    }
-
-    public PrintableStatistics getPrintableTimewindowThroughputStatistics() {
-        synchronized (timewindowLock) {
-            return new PrintableStatistics("throughput", "time-window", "messages/second", timewindowStart, timewindowEnd, timewindowThroughputStatistics.copy());
+            return new PrintableStatistics("performance", "time-window", "milliseconds", timewindowStart, timewindowEnd, timewindowLatencyStatistics.copy());
         }
     }
 
@@ -106,11 +92,9 @@ public class LatencyAndThroughputMessageSampler {
         }
         synchronized (cumulativeStatisticsLock) {
             addLatency(sentTimeMillis, receivedTimeMillis);
-            addThroughput(sentTimeMillis, receivedTimeMillis);
         }
         synchronized (timewindowLock) {
             addTimewindowLatency(sentTimeMillis, receivedTimeMillis);
-            addTimewindowThroughput(sentTimeMillis, receivedTimeMillis);
         }
     }
 
@@ -119,28 +103,8 @@ public class LatencyAndThroughputMessageSampler {
         latencyStatistics.addValue(durationMillis);
     }
 
-    private void addThroughput(long sentTimeMillis, long receivedTimeMillis) {
-        if (sentTimeMillis < minSentTimeMillis) {
-            minSentTimeMillis = sentTimeMillis;
-        }
-        double durationMillis = (receivedTimeMillis - minSentTimeMillis);
-        double durationSecond = durationMillis / timeWindowSampleIntervalMs;
-        double throughputMsgsPerSecond = (throughputStatistics.getN() + 1) / durationSecond;
-        throughputStatistics.addValue(throughputMsgsPerSecond);
-    }
-
     private void addTimewindowLatency(long sentTimeMillis, long receivedTimeMillis) {
         long timewindowDurationMillis = receivedTimeMillis - sentTimeMillis;
         timewindowLatencyStatistics.addValue(timewindowDurationMillis);
-    }
-
-    private void addTimewindowThroughput(long sentTimeMillis, long receivedTimeMillis) {
-        if (sentTimeMillis < timewindowMinSentTimeMillis) {
-            timewindowMinSentTimeMillis = sentTimeMillis;
-        }
-        double durationMillis = (receivedTimeMillis - timewindowMinSentTimeMillis);
-        double durationSecond = durationMillis / timeWindowSampleIntervalMs;
-        double throughputMsgsPerSecond = (timewindowThroughputStatistics.getN() + 1) / durationSecond;
-        timewindowThroughputStatistics.addValue(throughputMsgsPerSecond);
     }
 }

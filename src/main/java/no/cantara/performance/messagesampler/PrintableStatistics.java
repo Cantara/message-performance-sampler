@@ -7,29 +7,24 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.StringWriter;
+import java.time.Duration;
 import java.time.ZonedDateTime;
 
 public class PrintableStatistics {
     private final String name;
     private final String type;
     private final String unit;
-    private final DescriptiveStatistics statistics;
+    private final DescriptiveStatistics latencyStatistics;
     private final ZonedDateTime sampleBegin;
     private final ZonedDateTime sampleEnd;
 
     private final ThreadLocal<JsonGenerator> jsonGeneratorThreadLocal = new ThreadLocal<>();
 
-    PrintableStatistics(String name, String type, String unit, ZonedDateTime sampleBegin, ZonedDateTime sampleEnd, DescriptiveStatistics statistics) {
-        if (sampleBegin == null) {
-            throw new IllegalArgumentException("sampleBegin cannot be null");
-        }
-        if (sampleEnd == null) {
-            throw new IllegalArgumentException("sampleEnd cannot be null");
-        }
+    PrintableStatistics(String name, String type, String unit, ZonedDateTime sampleBegin, ZonedDateTime sampleEnd, DescriptiveStatistics latencyStatistics) {
         this.name = name;
         this.type = type;
         this.unit = unit;
-        this.statistics = statistics;
+        this.latencyStatistics = latencyStatistics;
         this.sampleBegin = sampleBegin;
         this.sampleEnd = sampleEnd;
     }
@@ -43,21 +38,7 @@ public class PrintableStatistics {
     }
 
     public void printTo(PrintStream out) {
-        out.println(name);
-        out.println(type);
-        out.println(unit);
-        out.println(sampleBegin.toString());
-        out.println(sampleEnd.toString());
-        out.printf("N      = %8d\n", statistics.getN());
-        out.printf("avg    = %12.3f\n", statistics.getMean());
-        out.printf("stddev = %12.3f\n", statistics.getStandardDeviation());
-        out.printf("min    = %12.3f\n", statistics.getMin());
-        out.printf("max    = %12.3f\n", statistics.getMax());
-        out.printf("sum    = %12.3f\n", statistics.getSum());
-        out.printf("50%%    = %12.3f\n", statistics.getPercentile(50));
-        out.printf("95%%    = %12.3f\n", statistics.getPercentile(90));
-        out.printf("99%%    = %12.3f\n", statistics.getPercentile(99));
-        out.printf("99.9%%  = %12.3f\n", statistics.getPercentile(99.9));
+        out.println(getJson());
     }
 
     public String getJson() {
@@ -75,21 +56,31 @@ public class PrintableStatistics {
             jg.writeStringField("unit", unit);
             jg.writeStringField("sample-bgn", sampleBegin.toString());
             jg.writeStringField("sample-end", sampleEnd.toString());
-            jg.writeObjectFieldStart("statistics");
-            jg.writeNumberField("N", statistics.getN());
-            if (statistics.getN() > 0) {
-                double mean = statistics.getMean();
-                jg.writeNumberField("mean", mean);
-                jg.writeNumberField("stddev", statistics.getStandardDeviation());
-                jg.writeNumberField("min", statistics.getMin());
-                jg.writeNumberField("max", statistics.getMax());
-                jg.writeNumberField("sum", statistics.getSum());
-                jg.writeNumberField("50%", statistics.getPercentile(50));
-                jg.writeNumberField("95%", statistics.getPercentile(90));
-                jg.writeNumberField("99%", statistics.getPercentile(99));
-                jg.writeNumberField("99.9%", statistics.getPercentile(99.9));
+            {
+                jg.writeObjectFieldStart("throughput");
+                long durationMillis = Duration.between(sampleBegin, sampleEnd).toMillis();
+                jg.writeNumberField("messages/second", 1000.0 * latencyStatistics.getN() / durationMillis);
+                jg.writeNumberField("messages", latencyStatistics.getN());
+                jg.writeNumberField("milliseconds", durationMillis);
+                jg.writeEndObject();
             }
-            jg.writeEndObject();
+            {
+                jg.writeObjectFieldStart("latency");
+                jg.writeNumberField("N", latencyStatistics.getN());
+                if (latencyStatistics.getN() > 0) {
+                    double mean = latencyStatistics.getMean();
+                    jg.writeNumberField("mean", mean);
+                    jg.writeNumberField("stddev", latencyStatistics.getStandardDeviation());
+                    jg.writeNumberField("min", latencyStatistics.getMin());
+                    jg.writeNumberField("max", latencyStatistics.getMax());
+                    jg.writeNumberField("sum", latencyStatistics.getSum());
+                    jg.writeNumberField("50%", latencyStatistics.getPercentile(50));
+                    jg.writeNumberField("95%", latencyStatistics.getPercentile(90));
+                    jg.writeNumberField("99%", latencyStatistics.getPercentile(99));
+                    jg.writeNumberField("99.9%", latencyStatistics.getPercentile(99.9));
+                }
+                jg.writeEndObject();
+            }
             jg.writeEndObject();
             jg.flush();
             jg.close();
@@ -97,9 +88,5 @@ public class PrintableStatistics {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    public DescriptiveStatistics getStatistics() {
-        return statistics;
     }
 }
