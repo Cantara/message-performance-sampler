@@ -5,7 +5,7 @@
   <parent>
     <groupId>no.cantara.emi</groupId>
     <artifactId>parent</artifactId>
-    <version>4</version>
+    <version>8</version>
   </parent>
 
   <groupId>no.cantara</groupId>
